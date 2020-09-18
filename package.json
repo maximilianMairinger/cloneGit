@@ -21,7 +21,8 @@
     "git"
   ],
   "bin": {
-    "clone": "./app/dist/cloneGit.js"
+    "clone": "./app/dist/cloneGit.js",
+    "cloneGit": "./app/dist/cloneGit.js"
   },
   "author": "Maximilian Mairinger",
   "license": "ISC",

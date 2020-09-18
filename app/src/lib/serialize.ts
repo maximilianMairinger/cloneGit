@@ -1,6 +1,8 @@
 import * as path from "path"
 import { promises as fs } from "fs"
 import doesFileExists from "./fileExists"
+import { deepEqual as equals } from "fast-equals"
+import clone from "fast-copy"
 
 
 const notYetInited = Symbol("Not yet Inited")
@@ -73,7 +75,7 @@ function initThenCall<T, Params extends Array<T>, Return>(init: (() => void | Pr
 
 class InternalSerialize<Store extends GenericObject = GenericObject> {
   private fileName: string;
-  constructor(private name: string = "Unnamed", private Default: Store) {
+  constructor(private name: string = "Unnamed", private Default: Store = {} as Store) {
     if (takenNamesIndex[name] === undefined) {
       takenNamesIndex[name] = 1
       this.fileName = name
@@ -106,7 +108,7 @@ export default InternalSerialize as any as {new<Store extends GenericObject = Ge
 
 let takenNamesIndex: {[name: string]: number} = {}
 
-const dir = path.join(__dirname, "../../../../", "data_store")
+const dir = path.join(__dirname, "../../", "data_store")
 
 
 let init = doesFileExists(dir).then(async (does) => {
@@ -126,19 +128,65 @@ type GenericObject = {[key in string]: any}
 
 interface Serialize<Store extends GenericObject = GenericObject> {
   write(data: any): Promise<void>
-  read(): Promise<GenericObject>
+  read(rememberInquiredDefaults?: boolean): Promise<GenericObject>
 }
 
 
 const extension = ".json"
 let serProto = InternalSerialize.prototype
-initThenCall(init, async function write(ob: any) {  
-  await fs.writeFile(path.join(dir, this.fileName + extension), JSON.stringify(ob, undefined, "  "))
+
+function rmDefaults(def: {[key in string | number]: any}, ob: unknown) {
+  for (let key in def) {
+    let defProp = def[key]
+    let obProp = ob[key]
+    if (typeof defProp === "object") {
+      rmDefaults(obProp, defProp)
+      if (equals(obProp, defProp)) delete ob[key]
+    }
+    else if (defProp === obProp) delete ob[key]
+  }
+  return ob
+}
+
+initThenCall(undefined, function removeDefaults(ob, def: {[key in string | number]: any} = this.Default) {
+  return rmDefaults(def, clone(ob))
 }, serProto)
 
 
-initThenCall(init, async function read() {
-  return JSON.parse((await fs.readFile(path.join(dir, this.fileName + extension))).toString())
+
+initThenCall(init, async function write(ob: any) {
+  await fs.writeFile(path.join(dir, this.fileName + extension), JSON.stringify(this.removeDefaults(ob), undefined, "  "))
+}, serProto)
+
+async function mergeConfig(def: any, ob: any) {
+  let proms = []
+  for (let key in def) {
+    let defProp = def[key]
+    let obProp = ob[key]
+    if (obProp === undefined) {
+      proms.add((async () => {
+        let res = defProp
+        if (res instanceof Function) res = await defProp()
+        ob[key] = res
+      })())
+    }
+    else if (typeof defProp === "object") {
+      proms.add(mergeConfig(obProp, defProp))
+    }
+  }
+
+  await Promise.all(proms)
+  return ob
+}
+
+
+initThenCall(init, async function read(rememberInquiredDefaults: boolean = true) {
+  let preMerge = JSON.parse((await fs.readFile(path.join(dir, this.fileName + extension))).toString())
+  let merged = await mergeConfig(this.Default, clone(preMerge))
+  if (rememberInquiredDefaults) {
+    if (!equals(merged, preMerge)) this.write(merged)
+  }
+  return merged
 }, serProto)
 
 initThenCall(init, function mkfile() {

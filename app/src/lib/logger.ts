@@ -1,5 +1,4 @@
 import chalk from "chalk"
-import xrray from "xrray"; xrray()
 
 let verbose = false
 let testEnv = false

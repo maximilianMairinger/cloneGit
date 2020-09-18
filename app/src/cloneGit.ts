@@ -1,5 +1,5 @@
+import $ from "./lib/shell"
+import { log } from "./lib/logger"
+const args = require("yargs").argv
 
-
-export default function() {
-  
-}
+log(args)

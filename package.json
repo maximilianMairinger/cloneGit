@@ -5,7 +5,7 @@
   "main": "app/dist/cloneGit.js",
   "types": "app/dist/cloneGit.d.ts",
   "scripts": {
-    "build": "tsc -p ./tsconfig.prod.json",
+    "build": "rollup --config rollup.node.prod.config.js",
     "dev": "npm run devNode",
     "devWeb": "rollup --config rollup.web.dev.config.js -w",
     "devNode": "rollup --config rollup.node.dev.config.js -w",
@@ -17,9 +17,12 @@
     "url": "git+https://github.com/maximilianMairinger/cloneGit.git"
   },
   "keywords": [
-  "clone",
-  "git"
-],
+    "clone",
+    "git"
+  ],
+  "bin": {
+    "clone": "./app/dist/cloneGit.js"
+  },
   "author": "Maximilian Mairinger",
   "license": "ISC",
   "bugs": {
@@ -32,9 +35,16 @@
     "@rollup/plugin-node-resolve": "^8.1.0",
     "@rollup/plugin-typescript": "^5.0.0",
     "@types/node": "^13.13.4",
+    "@types/yargs": "^15.0.5",
     "rollup": "^2.18.1",
     "tslib": "2.0.0",
     "typescript": "^4.0.2",
     "webpack-merge": "^5.0.9"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "shelljs": "^0.8.4",
+    "xrray": "^4.7.0",
+    "yargs": "^16.0.3"
   }
 }

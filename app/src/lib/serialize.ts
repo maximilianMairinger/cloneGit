@@ -181,7 +181,15 @@ async function mergeConfig(def: any, ob: any) {
 
 
 initThenCall(init, async function read(rememberInquiredDefaults: boolean = true) {
-  let preMerge = JSON.parse((await fs.readFile(path.join(dir, this.fileName + extension))).toString())
+  let fileContent = (await fs.readFile(path.join(dir, this.fileName + extension))).toString()
+  let preMerge: any
+  try {
+    preMerge = JSON.parse(fileContent)
+  }
+  catch(e) {
+    preMerge = {}
+    console.warn("Warning: Config file malformed. At: \"" + path.join(dir, this.fileName + extension) + "\"")
+  }
   let merged = await mergeConfig(this.Default, clone(preMerge))
   if (rememberInquiredDefaults) {
     if (!equals(merged, preMerge)) this.write(merged)

@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import xrray from "xrray"; xrray()
 
 let verbose = false
 let testEnv = false
@@ -29,6 +30,22 @@ export function error(...msg: any[]) {
   go(1, "Error", "error", "red", msg)
 }
 
+function range(l: number) {
+  let a: number[] = []
+  for (let i = 0; i < l; i++) {
+    a.add(i)
+  }
+  return a
+}
+
+const indentCount = 7
+function indent(str: string) {
+  for (const i of range(indentCount - str.length)) {
+    str += " "
+  }
+  return str
+}
+
 function go(severity: 0 | 1, prefix: string, kind: string, color: string, msg: any[]) {
   let n = []
   let err = []
@@ -43,12 +60,12 @@ function go(severity: 0 | 1, prefix: string, kind: string, color: string, msg: a
   let strings = []
   let notStrings = []
   msg.ea((s) => {
-    if (typeof s === "string") strings.add(s)
+    if (typeof s === "string") strings.add(s.split("\n").join("\n" + indent("") + " "))
     else notStrings.add(s)
   })
 
 
-  if (severity === 1 || verbose) console[kind](chalk[color]((last !== kind ? prefix + ":\t" : "\t"), ...strings), ...notStrings)
+  if (severity === 1 || verbose) console[kind](chalk[color]((last !== kind ? indent(prefix) : (indent("") + " ")), ...strings), ...notStrings)
   if (testEnv && !err.empty) console.log(...err)
   
 

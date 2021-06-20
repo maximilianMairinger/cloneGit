@@ -12,7 +12,7 @@ export default function(cmd: string) {
 
   if (res.code !== 0) {
     error("Encountered while executing the command above")
-    info("Stacktrace:")
-    info(res.stderr)
+    error("Stacktrace:")
+    error(res.stderr)
   }
 }

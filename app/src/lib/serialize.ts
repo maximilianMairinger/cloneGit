@@ -198,7 +198,7 @@ initThenCall(init, async function read(rememberInquiredDefaults: boolean = true)
 }, serProto)
 
 initThenCall(init, function mkfile() {
-  return new Promise((res) => {
+  return new Promise<void>((res) => {
     let filePath = path.join(dir, this.fileName + extension)
     
     doesFileExists(filePath).then((does) => {

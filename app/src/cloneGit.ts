@@ -1,10 +1,10 @@
+import xrray from "xrray"; xrray()
 import $ from "./lib/shell"
 import { log, setVerbose, setTestEnv } from "./lib/logger"
 import path from "path"
 import interpolateTemplate from "josm-interpolate-string"
 const argv = require("yargs").argv
 import Serialize from "./lib/serialize"
-import xrray from "xrray"; xrray()
 import clone from "fast-copy"
 import merge from "deepmerge"
 import inq from "./lib/inq"

@@ -2,8 +2,19 @@
   "name": "clone-git",
   "version": "1.1.0",
   "description": "git clone cli alias.",
-  "main": "app/dist/cloneGit.js",
-  "types": "app/dist/cloneGit.d.ts",
+  "main": "./app/dist/esm/cloneGit.mjs",
+  "types": "./app/dist/esm/cloneGit.d.ts",
+  "bin": {
+    "clone": "./app/dist/cjs/cloneGit.js",
+    "cloneGit": "./app/dist/cjs/cloneGit.js"
+  },
+  "exports": {
+    "default": "./app/dist/esm/cloneGit.mjs",
+    "node": {
+      "import": "./app/dist/esm/cloneGit.mjs",
+      "require": "./app/dist/cjs/cloneGit.js"
+    }
+  },
   "scripts": {
     "build": "del-cli app/dist && concurrently \"npm run buildESM\" \"npm run buildCJS\" --raw",
     "buildESM": "tsc -p ./tsconfig.prod.esm.json && mjsify app/dist esm cjs",
@@ -22,10 +33,6 @@
     "clone",
     "git"
   ],
-  "bin": {
-    "clone": "./app/dist/cloneGit.js",
-    "cloneGit": "./app/dist/cloneGit.js"
-  },
   "author": "Maximilian Mairinger",
   "license": "ISC",
   "bugs": {
@@ -41,7 +48,7 @@
     "@types/yargs": "^15.0.5",
     "concurrently": "^8.0.1",
     "del-cli": "^5.0.0",
-    "mjsify": "^2.0.3",
+    "mjsify": "^2.0.5",
     "rollup": "^2.18.1",
     "tslib": "2.0.0",
     "typescript": "^4.0.2",

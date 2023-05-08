@@ -1,7 +1,7 @@
 import { promises as fs } from "fs"
 import { error } from "./logger"
 
-export default async function fileExisits(path: string) {
+export default async function fileExists(path: string) {
   let fileExists: boolean
   try {
     await fs.stat(path)

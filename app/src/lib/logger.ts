@@ -33,7 +33,7 @@ export function error(...msg: any[]) {
 function range(l: number) {
   let a: number[] = []
   for (let i = 0; i < l; i++) {
-    a.add(i)
+    a.push(i)
   }
   return a
 }
@@ -47,8 +47,8 @@ function indent(str: string) {
 }
 
 function go(severity: 0 | 1, prefix: string, kind: string, color: string, msg: any[]) {
-  let n = []
-  let err = []
+  let n = [] as any
+  let err = [] as any
   msg.ea((m) => {
     if (m instanceof Error) {
       err.add(m.stack)
@@ -57,11 +57,11 @@ function go(severity: 0 | 1, prefix: string, kind: string, color: string, msg: a
     else n.add(m)
   })
 
-  let strings = []
-  let notStrings = []
+  let strings = [] as any[]
+  let notStrings = [] as any[]
   msg.ea((s) => {
-    if (typeof s === "string") strings.add(s.split("\n").join("\n" + indent("") + " "))
-    else notStrings.add(s)
+    if (typeof s === "string") strings.push(s.split("\n").join("\n" + indent("") + " "))
+    else notStrings.push(s)
   })
 
 

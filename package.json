@@ -60,7 +60,6 @@
     "fast-copy": "^2.1.0",
     "fast-equals": "^2.0.0",
     "inquirer": "^7.3.3",
-    "josm-interpolate-string": "^1.1.1",
     "shelljs": "^0.8.4",
     "xrray": "^4.7.0",
     "yargs": "^16.0.3"

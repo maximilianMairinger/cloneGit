@@ -1,8 +1,9 @@
+#!/usr/bin/env node
+
 import xrray from "xrray"; xrray()
 import $ from "./lib/shell"
 import { log, setVerbose, setTestEnv, error } from "./lib/logger"
 import * as path from "path"
-import interpolateTemplate from "josm-interpolate-string"
 const argv = require("yargs").argv
 import Serialize from "./lib/serialize"
 import clone from "fast-copy"
@@ -12,8 +13,8 @@ import {promises as fs} from "fs"
 import fileExists from "./lib/fileExists";
 
 const cloneTemplate = {
-  ssh: "git@github.com:$[ username ]/$[ repo ].git",
-  http: "https://github.com/$[ username ]/$[ repo ].git"
+  ssh: ({username, repo}) => `git@github.com:${username}/${repo}.git`,
+  http: ({username, repo}) => `https://github.com/${username}/${repo}.git`
 }
 
 
@@ -44,7 +45,7 @@ let serialize = new Serialize("config", {
     let dest = params[1] ? params[1] : ""
     if (!repo) repo = path.basename(path.resolve(""))
     let repoBaseName = repo
-    if (!repo.includes(".")) repo = interpolateTemplate(cloneTemplate[config.via], { repo, username: config.username }).get()
+    if (!repo.includes(".")) repo = cloneTemplate[config.via]({ repo, username: config.username })
     else repoBaseName = repo.split(".")[0].split("/").last
 
     const actualDest = dest !== "" ? dest : repoBaseName

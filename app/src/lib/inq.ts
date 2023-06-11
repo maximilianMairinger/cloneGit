@@ -1,15 +1,15 @@
-import * as inquirer from "inquirer"
+import { prompt, QuestionCollection } from "inquirer"
 
 
 type GenericObject = {[key in string]: any}
 
-type basicQuestion = GenericObject[] | GenericObject
+type basicQuestion = QuestionCollection[] | QuestionCollection
 
 type Questions = basicQuestion | ((options: GenericObject) => basicQuestion | Promise<basicQuestion>) | ((options: GenericObject) => basicQuestion | Promise<basicQuestion>)[]
 
-export default async function inq<T = any>(questions: string)
-export default async function inq<T = any>(questions: Questions, ignore?: string[] | GenericObject)
-export default async function inq<T = any>(questions: ((options: GenericObject) => Questions | Promise<Questions>), options: GenericObject)
+export default async function inq<T = any>(questions: string): Promise<string>
+export default async function inq<T = any>(questions: Questions, ignore?: string[] | GenericObject): Promise<string>
+export default async function inq<T = any>(questions: ((options: GenericObject) => Questions | Promise<Questions>), options: GenericObject): Promise<string>
 export default async function inq<T = any>(questions: string | Questions | ((options: GenericObject) => Questions | Promise<Questions>), options_ignore: GenericObject | string[] = {}) {
   if (typeof questions === "function") {
     //@ts-ignore
@@ -57,7 +57,7 @@ export default async function inq<T = any>(questions: string | Questions | ((opt
         })
       }
       else if (!ignore.includes(e.name)) {
-        let ans = await inquirer.prompt([e]) as any
+        let ans = await prompt([e]) as any
 
         options[e.name] = ans[e.name]
       }

@@ -2,15 +2,19 @@
 
 import xrray from "xrray"; xrray()
 import $ from "./lib/shell"
-import { log, setVerbose, setTestEnv, error } from "./lib/logger"
 import * as path from "path"
-const argv = require("yargs").argv
-import Serialize from "./lib/serialize"
-import clone from "fast-copy"
-import merge from "deepmerge"
 import inq from "./lib/inq"
 import {promises as fs} from "fs"
 import fileExists from "./lib/fileExists";
+import josmFsAdapter from "josm-fs-adapter";
+import { program } from "commander"
+import reqPackageJson, { reqPackagePath } from "req-package-json"
+const packetJson = reqPackageJson()
+import { setVerbose, log, warn, error, info } from "colorful-cli-logger"
+import { mergeKeysDeep as merge } from "circ-clone"
+
+
+
 
 const cloneTemplate = {
   ssh: ({username, repo}) => `git@github.com:${username}/${repo}.git`,
@@ -18,32 +22,36 @@ const cloneTemplate = {
 }
 
 
-let serialize = new Serialize("config", {
-  via: "http",
-  username: () => inq("Github username")
-});
 
-(async () => {
-  let params = argv._ as string[]
-  delete argv._
-  delete argv.$0
-  let args = argv as {[key in string]: string}
-
-  let config = await serialize.read()
-  
-
-
-  let repo = params.first
-  
+program
+  .version(packetJson.version)
+  .description(packetJson.description)
+  .name(packetJson.name)
+  .option('-s, --silent', 'silence stdout')
+  .option("--via", `clone via "http" or "ssh"`)
+  .option("--username", "github username")
+  .option("--dry-run", "don't actually clone, but adjust config (= username and via option)")
+  .argument('[repo]', "repo to clone, defaults to the current directory name")
+  .argument('[destination]', "Destination where to clone the repo, defaults to the repo name")
+  .action(async (repo, dest, options: {via?: string, username?: string, dryRun?: boolean, silent?: boolean}) => {
+    setVerbose(!options.silent)
 
 
-  if (repo === "config") {
-    await serialize.write(merge(config, clone(args)))
-    log("Updated config")
-  }
-  else {
-    let dest = params[1] ? params[1] : ""
-    if (!repo) repo = path.basename(path.resolve(""))
+    const config = (await josmFsAdapter("config.json", merge(options as {}, {
+      username: () => inq("Github username"),
+      via: () => inq({
+        message: "Clone via",
+        type: "list",
+        choices: ["http", "ssh"]
+      })
+    })))();
+
+
+    
+    if (!repo) {
+      repo = path.basename(path.resolve(""))
+      if (dest === undefined) dest = "."
+    }
     let repoBaseName = repo
     if (!repo.includes(".")) repo = cloneTemplate[config.via]({ repo, username: config.username })
     else repoBaseName = repo.split(".")[0].split("/").last
@@ -52,25 +60,43 @@ let serialize = new Serialize("config", {
 
     if (await fileExists(actualDest)) {
       if ((await fs.stat(actualDest)).isDirectory()) {
-        if (await fileExists(path.join(actualDest, ".git"))) log(`There is already a git repo in ${actualDest}`)
+        if (await fileExists(path.join(actualDest, ".git"))) warn(`There is already a git repo in ${actualDest}. Terminating here`)
         else error(`Directory ${actualDest} already exists and is not a git repo`)
       }
       else error(`File ${actualDest} already exists`)        
       return
     }
 
-    log(`Cloning ${repo}...`)
-    $(`cd ${path.resolve("")} && git clone ${repo} ${dest}`)
-    const exists = await fileExists(path.join(actualDest, "package.json"))
-    if (exists) {
-      log("Installing dependencies...")
-      $(`cd ${actualDest} && npm i`)
+    info(`Cloning ${repo}...`)
+    if (options.dryRun) log("Skipping clone and npm install because this is a dry run")
+    else {
+      $(`cd ${path.resolve("")} && git clone ${repo} ${dest}`)
+      const exists = await fileExists(path.join(actualDest, "package.json"))
+      if (exists) {
+        info("Installing dependencies...")
+        $(`cd ${actualDest} && npm i`)
+      }
     }
     
+    
+    
 
-    log("Done")
-  }  
-})()
+    info("Done")
+  
+    
+    
+  })
+
+.parse(process.argv)
+
+
+
+
+
+
+
+
+
 
 
 

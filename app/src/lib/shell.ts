@@ -1,5 +1,5 @@
 const shell = require("shelljs")
-import { warn, error, info } from "./logger"
+import { warn, error, info } from "colorful-cli-logger"
 
 export function check(program: string) {
   if (!shell.which(program)) throw "Unable to use " + program + ". All commands reliant on this programm will not be executed."

@@ -1,5 +1,5 @@
 import { promises as fs } from "fs"
-import { error } from "./logger"
+import { error } from "colorful-cli-logger"
 
 export default async function fileExists(path: string) {
   let fileExists: boolean

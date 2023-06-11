@@ -1,13 +1,22 @@
-./test
-./repl
+test
+repl
 src
-./index.html
+index.html
 
 .github
 
-./tsconfig.prod.json
-./tsconfig.dev.json
-./rollup.sever.common.config.js
-./rollup.web.common.config.js
-./rollup.sever.dev.config.js
-./rollup.web.dev.config.js
+
+config.json
+index.html
+data_store/config.json
+repl
+rollup.node.common.config.js
+rollup.node.dev.config.js
+rollup.node.prod.config.js
+rollup.web.common.config.js
+rollup.web.dev.config.js
+tsconfig.dev.json
+tsconfig.json 
+tsconfig.prod.cjs.json
+tsconfig.prod.esm.json
+tsconfig.prod.json

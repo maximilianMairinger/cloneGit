@@ -56,7 +56,7 @@ program
     if (!repo.includes(".")) repo = cloneTemplate[config.via]({ repo, username: config.username })
     else repoBaseName = repo.split(".")[0].split("/").last
 
-    const actualDest = dest !== "" ? dest : repoBaseName
+    const actualDest = dest !== undefined ? dest : repoBaseName
 
     if (await fileExists(actualDest)) {
       if ((await fs.stat(actualDest)).isDirectory()) {

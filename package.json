@@ -47,7 +47,6 @@
     "@types/inquirer": "^7.3.3",
     "@types/node": "^13.13.4",
     "@types/yargs": "^15.0.5",
-    "circ-clone": "^2.1.4",
     "concurrently": "^8.0.1",
     "del-cli": "^5.0.0",
     "mjsify": "^2.0.5",
@@ -58,6 +57,7 @@
   },
   "dependencies": {
     "chalk": "^4.1.0",
+    "circ-clone": "^2.1.4",
     "colorful-cli-logger": "^1.0.2",
     "commander": "^10.0.1",
     "deepmerge": "^4.2.2",

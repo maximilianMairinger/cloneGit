@@ -9,11 +9,18 @@ export function check(program: string) {
 let dry = false
 export function setDry(_dry: boolean) {
   dry = _dry
+  if (dry && verbose === undefined) verbose = true
 }
+
+let verbose = undefined
+export function setVerbose(verbose: boolean) {
+  verbose = verbose
+}
+
 
 export default function() {
   let cd: string = path.resolve(".")
-  function $(cmd: string, logOnThrow = false) {
+  function $(cmd: string, logOnThrow = verbose) {
     return new Promise<string>((resolve, reject) => {
       info(`shell ${dry ? "(dry)" : ""}: ${cmd}`)
   

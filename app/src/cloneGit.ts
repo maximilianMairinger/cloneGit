@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import xrray from "xrray"; xrray()
-import make$, { setDry } from "./lib/shell"
+import make$, { setDry, setVerbose as setShellVerbose } from "./lib/shell"
 import * as path from "path"
 import inq from "./lib/inq"
 import {promises as fs} from "fs"
@@ -43,8 +43,8 @@ const queryTemplate = ({username}) => `
 const saniOptions = sani({
   "via?": new OR(new CONST("http"), new CONST("ssh")),
   "username?": String,
-  "dryRun?": Boolean,
-  "verbose?": Boolean,
+  "dryRun?": false,
+  "verbose?": false,
   "auth?": String
 })
 
@@ -70,6 +70,7 @@ program
     if (options.dryRun && options.verbose === undefined) options.verbose = true
     setVerbose(options.verbose)
     setDry(options.dryRun)
+    setShellVerbose(options.verbose)
 
 
     const configOptions = saniConfigRelevantOptions(options) as { via?: "http" | "ssh", username?: string, auth?: string }

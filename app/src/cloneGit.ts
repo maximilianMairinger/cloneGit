@@ -12,7 +12,7 @@ import reqPackageJson, { reqPackagePath } from "req-package-json"
 const packetJson = reqPackageJson()
 import { setVerbose, log, warn, error, info } from "colorful-cli-logger"
 import { mergeKeysDeep as merge } from "circ-clone"
-
+import sani, { CONST, OR } from "sanitize-against"
 
 
 
@@ -22,6 +22,17 @@ const cloneTemplate = {
 }
 
 
+const saniOptions = sani({
+  "via?": new OR(new CONST("http"), new CONST("ssh")),
+  "username?": String,
+  "dryRun?": Boolean,
+  "silent?": Boolean
+})
+
+const saniConfigRelevantOptions = sani({
+  "via?": new OR(new CONST("http"), new CONST("ssh")),
+  "username?": String
+})
 
 program
   .version(packetJson.version)
@@ -33,19 +44,25 @@ program
   .option("--dry-run", "don't actually clone, but adjust config (= username and via option)")
   .argument('[repo]', "repo to clone, defaults to the current directory name")
   .argument('[destination]', "Destination where to clone the repo, defaults to the repo name")
-  .action(async (repo, dest, options: {via?: string, username?: string, dryRun?: boolean, silent?: boolean}) => {
+  .action(async (repo, dest, options: {via?: "http" | "ssh", username?: string, dryRun?: boolean, silent?: boolean}) => {
+    options = saniOptions(options)
     setVerbose(!options.silent)
 
 
-    const config = (await josmFsAdapter("config.json", merge(options as {}, {
+    const configOptions = saniConfigRelevantOptions(options) as { via?: "http" | "ssh", username?: string }
+
+    const configDB = (await josmFsAdapter("config.json", merge({
       username: () => inq("Github username"),
       via: () => inq({
         message: "Clone via",
         type: "list",
         choices: ["http", "ssh"]
       })
-    })))();
+    }, configOptions)));
 
+    configDB(configOptions)
+
+    const config = configDB()
 
     
     if (!repo) {

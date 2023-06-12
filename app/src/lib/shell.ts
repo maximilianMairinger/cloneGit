@@ -15,9 +15,10 @@ export default function() {
   let cd: string = path.resolve(".")
   function $(cmd: string, logOnThrow = false) {
     return new Promise<string>((resolve, reject) => {
-      info(`shell: ${cmd}`)
+      info(`shell ${dry ? "(dry)" : ""}: ${cmd}`)
   
-      if (dry) return
+ 
+      if (dry) return setTimeout(() => {resolve("")}, 10)
       const actualCmd = `cd ${cd} && ${cmd}`
       shell.exec(actualCmd, {silent: true, fatal: false}, ({code, stderr, stdout}) => {
         if (code !== 0) {

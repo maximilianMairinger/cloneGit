@@ -65,7 +65,7 @@ program
   .option("--dry-run", "don't actually clone, but adjust config (= username and via option). Also set verbose to true by default")
   .argument('[repo]', "repo to clone, defaults to the current directory name")
   .argument('[destination]', "Destination where to clone the repo, defaults to the repo name")
-  .action(async (repo, dest, options: {via?: "http" | "ssh", username?: string, dryRun?: boolean, verbose?: boolean}) => {
+  .action(async (repo, dest, options: {via?: "http" | "ssh", username?: string, dryRun?: boolean, verbose?: boolean}) => { (async () => {
     options = saniOptions(options)
     if (options.dryRun && options.verbose === undefined) options.verbose = true
     setVerbose(options.verbose)
@@ -98,7 +98,7 @@ program
         return fetch("https://api.github.com/graphql", {
           method: 'POST',
           body: JSON.stringify({
-            query: queryTemplate({username: options.username})
+            query: queryTemplate({username: config.username})
           }),
           headers: {
             Authorization: `Bearer ${config.auth}`,
@@ -116,7 +116,7 @@ program
         repos,
         fuse: memoize(() => new Fuse(repos))
       }
-    }).catch((e) => {return {which: "userRepos" as const, data: e}}).then((data: {repos: string[], fuse: () => Fuse<string>}) => {return {which: "userRepos" as const, data}})
+    }).catch((e) => {throw {which: "userRepos" as const, data: e}}).then((data: {repos: string[], fuse: () => Fuse<string>}) => {return {which: "userRepos" as const, data}})
     
     
 
@@ -125,7 +125,9 @@ program
       if (dest === undefined) dest = "."
     }
 
-    async function checkDest(dest?: string) {
+    const ogDest = dest
+
+    async function checkDest(repo: string, dest?: string) {
       let repoBaseName = repo
       if (!repo.includes(".")) repo = cloneTemplate[config.via]({ repo, username: config.username })
       else repoBaseName = repo.split(".")[0].split("/").last
@@ -141,23 +143,24 @@ program
         throw new Error("Destination already exists")
       }
 
-      return {repoBaseName, actualDest}
+      return {repoBaseName, actualDest, repo}
     }
 
-    let { actualDest, repoBaseName } = await checkDest(dest)
+    let { actualDest, repoBaseName, repo: _repo } = await checkDest(repo, ogDest)
+    repo = _repo
     
 
     log(`Cloning ${repo}...`)
     
     
-    const cloning = $(`git clone ${repo} ${actualDest}`).then((data) => {return {which: "cloning" as const, data}}).catch((e) => {return {which: "cloning" as const, data: e}})
+    const cloning = $(`git clone ${repo} ${actualDest}`).then((data) => {return {which: "cloning" as const, data}}).catch((e) => {throw {which: "cloning" as const, data: e}})
 
 
 
     async function handleRepos(data: {repos: string[], fuse: () => Fuse<string>}) {
       if (data.repos.includes(repoBaseName)) return "should work"
       else {
-        const recommendations = data.fuse().search(repo).map((a) => a.item)
+        const recommendations = data.fuse().search(repoBaseName).map((a) => a.item)
         if (recommendations.length === 0) {
           error(`Repo ${repo} not found for user ${config.username}. Terminating here`)
           throw new Error("Repo not found")
@@ -169,16 +172,18 @@ program
             type: "list",
             choices: recommendations
           })
-          const d = await checkDest(dest)
+
+          const d = await checkDest(newRepo, ogDest)
           actualDest = d.actualDest
           repoBaseName = d.repoBaseName
-          
-          log(`Cloning ${newRepo}...`)
+          repo = d.repo
+
+          log(`Cloning ${repo}...`)
           try {
-            await $(`git clone ${cloneTemplate[config.via]({ repo: newRepo, username: config.username })} ${actualDest}`)
+            await $(`git clone ${repo} ${actualDest}`)
           }
           catch(e) {
-            error(`Could not clone ${newRepo}, even though the repo exists. Terminating here`)
+            error(`Could not clone ${repo}, even though the repo exists. Terminating here`)
             throw new Error("Could not clone")
           }
           
@@ -223,16 +228,21 @@ program
       $.cd(actualDest)
       await $(`npm i`)
     }
-  
     
     
-    
-
+  })().then(() => {
     log("Done")
-  
-    
-    
   })
+  .catch((e) => {
+    if (e instanceof Error) {
+      error("Fatal:", e.message)
+      process.exit(1)
+    }
+    else {
+      error("Fatal:", e)
+      process.exit(1)
+    }
+  })})
 
 .parse(process.argv)
 

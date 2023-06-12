@@ -43,8 +43,8 @@ const queryTemplate = ({username}) => `
 const saniOptions = sani({
   "via?": new OR(new CONST("http"), new CONST("ssh")),
   "username?": String,
-  "dryRun?": false,
-  "verbose?": false,
+  "dryRun?": false as boolean,
+  "verbose?": false as boolean,
   "auth?": String
 })
 

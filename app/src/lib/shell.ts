@@ -22,7 +22,7 @@ export default function() {
   let cd: string = path.resolve(".")
   function $(cmd: string, logOnThrow = verbose) {
     return new Promise<string>((resolve, reject) => {
-      info(`shell ${dry ? "(dry)" : ""}: ${cmd}`)
+      info(`shell${dry ? " (dry)" : ""}: ${cmd}`)
   
  
       if (dry) return setTimeout(() => {resolve("")}, 10)

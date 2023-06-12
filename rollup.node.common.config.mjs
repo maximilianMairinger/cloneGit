@@ -68,10 +68,9 @@ const config = {
         ["exports", ".", "default"],
         "exports",
         "main"
-      ])
+      ]).filter(v => typeof v === "string")
 
       for (let val of vals) {
-        if (typeof val !== "string") continue
         if (val.endsWith(".mjs")) continue
         if (fs.existsSync(path.join("node_modules", mod, val))) {
           if (fs.statSync(path.join("node_modules", mod, val)).isDirectory()) val = path.join(val, "index.js")
@@ -81,7 +80,7 @@ const config = {
         if (!val.endsWith(".js")) continue
 
         const fileContent = fs.readFileSync(path.join("node_modules", mod, val), "utf8")
-        const isCjs = isCjsRegex.test(fileContent)
+        const isCjs = fileContent.match(isCjsRegex) !== null
         
         
         if (isCjs) return false

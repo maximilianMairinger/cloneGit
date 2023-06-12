@@ -1,6 +1,6 @@
 {
   "name": "clone-git",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "git clone cli alias.",
   "main": "./app/dist/esm/cloneGit.mjs",
   "types": "./app/dist/esm/cloneGit.d.ts",

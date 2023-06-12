@@ -13,8 +13,8 @@ export function setDry(_dry: boolean) {
 }
 
 let verbose = undefined
-export function setVerbose(verbose: boolean) {
-  verbose = verbose
+export function setVerbose(_verbose: boolean) {
+  verbose = _verbose
 }
 
 

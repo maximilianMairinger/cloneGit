@@ -1,18 +1,45 @@
-const shell = require("shelljs")
+import shell from "shelljs"
+import path from "path"
 import { warn, error, info } from "colorful-cli-logger"
 
 export function check(program: string) {
-  if (!shell.which(program)) throw "Unable to use " + program + ". All commands reliant on this programm will not be executed."
+  if (!shell.which(program)) throw "Unable to use " + program + ". All commands reliant on this program will not be executed."
 }
 
-export default function(cmd: string) {
-  info(`shell: ${cmd}`)
+let dry = false
+export function setDry(_dry: boolean) {
+  dry = _dry
+}
 
-  let res = shell.exec(cmd, {silent: true, fatal: true})
-
-  if (res.code !== 0) {
-    error("Encountered while executing the command above")
-    error("Stacktrace:")
-    error(res.stderr)
+export default function() {
+  let cd: string = path.resolve(".")
+  function $(cmd: string, logOnThrow = false) {
+    return new Promise<string>((resolve, reject) => {
+      info(`shell: ${cmd}`)
+  
+      if (dry) return
+      const actualCmd = `cd ${cd} && ${cmd}`
+      shell.exec(actualCmd, {silent: true, fatal: false}, ({code, stderr, stdout}) => {
+        if (code !== 0) {
+          if (logOnThrow) {
+            error("command:", actualCmd)
+            error("Encountered while executing the command above, code:", code)
+            error("stdout:")
+            error(stdout)
+            error("stderr:")
+            error(stderr)
+          }
+          reject(stderr)
+        }
+        else {
+          resolve(stdout)
+        }
+      })
+    })
   }
+  $.cd = (dir: string) => {
+    if (path.isAbsolute(dir)) cd = dir
+    else cd = path.join(cd, dir)
+  }
+  return $
 }

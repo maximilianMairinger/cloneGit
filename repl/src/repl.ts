@@ -2,19 +2,27 @@
 import josmFsAdapter from "josm-fs-adapter";
 import inq from "../../app/src/lib/inq";
 import clone from "circ-clone"
+import ajaon from "ajaon"
+
+
+
 
 
 
 (async () => {
-  let config = await josmFsAdapter("config", {
-    username: () => inq("Github username"),
-    via: () => inq({
-      message: "Clone via",
-      type: "list",
-      choices: ["http", "ssh"]
-    }),
-  });
+  const a = (await fetch("https://api.github.com/users/maximilianMairinger/repos")).json().then((a) => a.map(({name}) => name))
   
-  console.log(clone(config()))
+  
+  Promise.race([a, new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject("timeout")
+    }, 10)
+  })]).then((a) => {
+    console.log("res", a)
+  }).catch((e) => {
+    console.log("rej", e)
+  })
+
 })()
+
 

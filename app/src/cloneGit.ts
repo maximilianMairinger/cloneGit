@@ -26,7 +26,7 @@ const saniOptions = sani({
   "via?": new OR(new CONST("http"), new CONST("ssh")),
   "username?": String,
   "dryRun?": Boolean,
-  "silent?": Boolean
+  "verbose?": Boolean
 })
 
 const saniConfigRelevantOptions = sani({
@@ -38,15 +38,15 @@ program
   .version(packetJson.version)
   .description(packetJson.description)
   .name(packetJson.name)
-  .option('-s, --silent', 'silence stdout')
+  .option('--verbose', 'verbose stdout logs')
   .option("--via", `clone via "http" or "ssh"`)
   .option("--username", "github username")
   .option("--dry-run", "don't actually clone, but adjust config (= username and via option)")
   .argument('[repo]', "repo to clone, defaults to the current directory name")
   .argument('[destination]', "Destination where to clone the repo, defaults to the repo name")
-  .action(async (repo, dest, options: {via?: "http" | "ssh", username?: string, dryRun?: boolean, silent?: boolean}) => {
+  .action(async (repo, dest, options: {via?: "http" | "ssh", username?: string, dryRun?: boolean, verbose?: boolean}) => {
     options = saniOptions(options)
-    setVerbose(!options.silent)
+    setVerbose(options.verbose)
 
 
     const configOptions = saniConfigRelevantOptions(options) as { via?: "http" | "ssh", username?: string }
@@ -84,13 +84,13 @@ program
       return
     }
 
-    info(`Cloning ${repo}...`)
+    log(`Cloning ${repo}...`)
     if (options.dryRun) log("Skipping clone and npm install because this is a dry run")
     else {
       $(`cd ${path.resolve("")} && git clone ${repo} ${actualDest}`)
       const exists = await fileExists(path.join(actualDest, "package.json"))
       if (exists) {
-        info("Installing dependencies...")
+        log("Installing dependencies...")
         $(`cd ${actualDest} && npm i`)
       }
     }
@@ -98,7 +98,7 @@ program
     
     
 
-    info("Done")
+    log("Done")
   
     
     

@@ -70,7 +70,7 @@ program
     info(`Cloning ${repo}...`)
     if (options.dryRun) log("Skipping clone and npm install because this is a dry run")
     else {
-      $(`cd ${path.resolve("")} && git clone ${repo} ${dest}`)
+      $(`cd ${path.resolve("")} && git clone ${repo} ${actualDest}`)
       const exists = await fileExists(path.join(actualDest, "package.json"))
       if (exists) {
         info("Installing dependencies...")

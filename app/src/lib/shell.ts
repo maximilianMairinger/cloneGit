@@ -27,7 +27,7 @@ export default function() {
  
       if (dry) return setTimeout(() => {resolve("")}, 10)
       const actualCmd = `cd ${cd} && ${cmd}`
-      shell.exec(actualCmd, {silent: true, fatal: false}, ({code, stderr, stdout}) => {
+      shell.exec(actualCmd, {silent: true, fatal: false}, (code: number, stderr: string, stdout: string) => {
         if (code !== 0) {
           if (logOnThrow) {
             error("command:", actualCmd)

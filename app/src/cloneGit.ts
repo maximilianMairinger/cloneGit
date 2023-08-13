@@ -75,7 +75,7 @@ program
 
     const configOptions = saniConfigRelevantOptions(options) as { via?: "http" | "ssh", username?: string, auth?: string }
 
-    const configDB = (await josmFsAdapter("config.json", merge({
+    const configDB = (await josmFsAdapter(path.join(__dirname, "config.json"), merge({
       username: () => inq("Github username"),
       via: () => inq({
         message: "Clone via",
@@ -110,7 +110,10 @@ program
         }).then((resp) => resp.json()).then((a) => a.data.user.repositories.nodes.map(({name}) => name)) as Promise<string[]>
       }
       else {
-        return fetch(`https://api.github.com/users/${config.username}/repos`).then((a) => a.json()).then((a) => a.map(({name}) => name)) as Promise<string[]>
+        return new Promise<string[]>((res) => {
+          // this does not give us all repos... So skip it until we find a better way
+          // res(fetch(`https://api.github.com/users/${config.username}/repos`).then((a) => a.json()).then((a) => a.map(({name}) => name)) as Promise<string[]>)
+        })
       }
     })().then((repos) => {
       return {
@@ -118,7 +121,6 @@ program
         fuse: memoize(() => new Fuse(repos))
       }
     }).catch((e) => {throw {which: "userRepos" as const, data: e}}).then((data: {repos: string[], fuse: () => Fuse<string>}) => {return {which: "userRepos" as const, data}})
-    
     
 
     if (!repo) {

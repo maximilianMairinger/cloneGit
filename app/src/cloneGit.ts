@@ -27,17 +27,53 @@ const cloneTemplate = {
 }
 
 
-const queryTemplate = ({username}) => `
-{
-  user(login: "${username}") {
-    repositories(first: 100) {
-      nodes {
-        name
+
+async function getAllRepositoryNamesViaGraphQl(username: string, token: string): Promise<string[]> {
+  const repoNames: string[] = [];
+  let hasNextPage = true;
+  let endCursor = null;
+
+  while (hasNextPage) {
+    const query = `
+      {
+        user(login: "${username}") {
+          repositories(first: 100, after: ${endCursor}) {
+            nodes {
+              name
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
       }
-    }
+    `;
+
+    const response = await fetch('https://api.github.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'Clone git',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    const repositories = data.data.user.repositories.nodes;
+    repoNames.push(...repositories.map(({name}) => name));
+
+    hasNextPage = data.data.user.repositories.pageInfo.hasNextPage;
+    endCursor = `"${data.data.user.repositories.pageInfo.endCursor}"`;
   }
+
+  return repoNames;
 }
-`;
+
+
 
 
 const saniOptions = sani({
@@ -96,18 +132,7 @@ program
 
     const userReposProm = (() => {
       if (config.auth !== undefined) {
-        return fetch("https://api.github.com/graphql", {
-          method: 'POST',
-          body: JSON.stringify({
-            query: queryTemplate({username: config.username})
-          }),
-          headers: {
-            Authorization: `Bearer ${config.auth}`,
-            'User-Agent': 'Clone git',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }).then((resp) => resp.json()).then((a) => a.data.user.repositories.nodes.map(({name}) => name)) as Promise<string[]>
+        return getAllRepositoryNamesViaGraphQl(config.username, config.auth)
       }
       else {
         return new Promise<string[]>((res) => {

@@ -254,7 +254,7 @@ program
       log("Installing dependencies...")
 
       $.cd(actualDest)
-      await $(`npm i`)
+      await $(`pnpm i`)
     }
     
     
